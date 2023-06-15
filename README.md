@@ -22,7 +22,7 @@
 
 -Then run these commands:
  -`python manage.py makemigrations`
--`python manage.py migrate`
+ -`python manage.py migrate`
 
 - To run the website in a development server:
   -run `python manage.py runserver`
