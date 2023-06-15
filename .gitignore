@@ -6,7 +6,6 @@ __pycache__/
 venv/
 
 requirements.in
-requirements.txt
 
 # uploads (images)
 /uploads/
