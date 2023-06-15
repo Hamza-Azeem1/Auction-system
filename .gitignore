@@ -5,10 +5,8 @@ __pycache__/
 # virtual env
 venv/
 
-#Database file
-db.sql
-
 requirements.in
+requirements.txt
 
 # uploads (images)
 /uploads/
