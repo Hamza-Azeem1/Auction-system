@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Auction System- Django
 
 ### Requirements
