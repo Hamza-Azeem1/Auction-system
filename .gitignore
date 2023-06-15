@@ -1,7 +1,3 @@
-# vim files and folder
-.vim/
-/.vim/
-
 # pycache
 __pycache__/
 /__pycache__/
