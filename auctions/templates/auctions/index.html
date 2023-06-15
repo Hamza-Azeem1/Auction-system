@@ -1,0 +1,87 @@
+{% extends "auctions/layout.html" %}
+{% load static %}
+
+{% block body %}
+<div class="add-listing-container">
+  <h2 class="blue-text margin-bot">
+    Active Listings
+  </h2>
+  <!-- Search Bar -->
+  <div class="search-bar-container">
+    <form method="GET" action="{% url 'auctions:search_results' %}">
+      <input class="search-bar" type="text" name="query" placeholder="Search...">
+      <button class="search-btn" type="submit">Search</button>
+    </form>
+  </div>
+
+  {% if user.is_authenticated %}
+  <div class="btn-container">
+    <a class="btn btn-outline-success plus-link" href="{% url 'auctions:add_listing' %}">+ Add new Listing</a>
+    <a class="btn btn-outline-success plus-link" href="{% url 'auctions:user_listings' %}">View Your Listings</a>
+  </div>
+  {% endif %}
+</div>
+
+{% if messages %}
+{% for message in messages %}
+<div class="alert success-text">
+  {{ message }}
+</div>
+{% endfor %}
+{% endif %}
+
+<!-- Search Results -->
+{% if search_results %}
+<div class="search-results">
+  <h3>Search Results:</h3>
+  <ul>
+    {% for result in search_results %}
+    <li>{{ result.name }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+{% if listings %}
+<div class="card-container">
+  {% for list in listings %}
+  <div class="card">
+    <img class="card-img-top" src="{{ list.listing.image.url }}" alt="{{ list.listing.name }} - img">
+    <div class="card-body">
+      <h5 class="card-title">{{ list.listing.name }}</h5>
+      {% if list.bid != None %}
+      <h6 class="card-subtitle mb-2 text-danger">Bidding has started on this item</h6>
+      <h6 class="card-subtitle mb-2">
+        Current Highest Bid:
+        <strong class="text-warning">
+          ${{ list.bid.highest_bid}}
+        </strong>
+      </h6>
+      {% else %}
+      <h6 class="card-subtitle text-success">No Bids Currently Placed</h6>
+      <h6 class="card-text">Bid Starts From: <strong>${{ list.listing.initial }}</strong></h6>
+      {% endif %}
+      <h6 class="card-text">Category: <strong>{{ list.listing.category }}</strong></h6>
+      <p class="card-text">End Time: <strong> <span id="end-time-{{ list.id }}">
+            {{list.listing.end_time}}</span></strong></p>
+      <!-- <p class="card-text">Time Remaining: <span id="time-remaining-{{ list.id }}"></span></p> -->
+      {% if user.is_authenticated %}
+      <div class="links-box">
+        <a class="btn btn-outline-primary" href="{% url 'auctions:listing' list.listing.id %}">View Listing</a>
+        <a class="btn btn-outline-success" href="{% url 'auctions:add_to' list.listing.id %}">Add to WatchList</a>
+        {% if list.listing.user == user %}
+        <a class="btn btn-outline-danger" href="{% url 'auctions:close_listing' list.listing.id %}">Close Listing</a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="no-listings-msg">
+  <h4>No Active Listings Found</h4>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<div class="add-listing-container">
+    <h2 class="blue-text margin-bot">
+        Search Results
+    </h2>
+</div>
+
+<div class="cuntainer">
+    {% if listings %}
+    {% for list in listings %}
+    <div class="crd">
+        <img class="crd-img-top" src="{{ list.image.url }}" alt="{{ list.name }} - img">
+        <div class="crd-body">
+            <h5 class="crd-title">{{ list.name }}</h5>
+            <p class="crd-text">Initial Price: ${{ list.initial }}</p>
+            <p class="crd-text">Category: {{ list.category }}</p>
+            <a href="{% url 'auctions:listing' list.id %}" class="btn btn-outline-primary">View Listing</a>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p>No results found for "{{ query }}"</p>
+    {% endif %}
+</div>
+{% endblock %}

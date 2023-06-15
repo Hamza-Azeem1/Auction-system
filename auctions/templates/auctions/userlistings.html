@@ -1,0 +1,54 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<h2 class="blue-text">Categories</h2>
+
+{% if category_list %}
+<ul class="category-list bg-light">
+  {% for key, category in category_list.items %}
+  <li>
+    <a class="btn btn-warning" href="#{{ key }}">{{ key }}</a>
+  </li>
+  {% endfor %}
+</ul>
+<hr>
+{% for key, category in category_list.items %}
+<div class="listings">
+  <h3 class="blue-text category-title" id="{{ key }}">{{ key }}</h3>
+  <div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for list in category %}
+    <div class="col">
+      <div class="card">
+        <img src="{{ list.listing.image.url }}" class="card-img-top" alt="{{ list.listing.name }} - img" height="170">
+        <div class="card-body">
+          <h5 class="card-title">{{ list.listing.name }}</h5>
+          {% if list.bid %}
+          <p class="card-text text-danger">Bidding has started on this item</p>
+          <p class="card-text">Current Highest Bid: <strong class="text-warning">
+              ${{ list.listing.highest_bid}}</strong></p>
+          {% else %}
+          <p class="card-text text-success">No Bids Currently Placed</p>
+          <p class="card-text">Bid Starts From: <strong>${{ list.listing.initial }}</strong></p>
+          {% endif %}
+          {% if user.is_authenticated %}
+          <div class="d-grid gap-2">
+            <a class="btn btn-outline-primary" href="{% url 'auctions:listing' list.listing.id %}">View Listing</a>
+            {% if list.listing.user == user %}
+            <a class="btn btn-outline-danger" href="{% url 'auctions:close_listing' list.listing.id %}">Close
+              Listing</a>
+            {% endif %}
+          </div>
+          {% else %}
+          <a class="nav-link" href="{% url 'auctions:login' %}">Log In to view listing</a>
+          {% endif %}
+          <h6 class="right-align">Date added: {{ list.listing.created }}</h6>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+<hr>
+{% endfor %}
+{% endif %}
+{% endblock %}
