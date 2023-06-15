@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Auction System- Django
 
 ### Requirements
@@ -60,3 +61,6 @@
 
 - Implemented by **Hamza Azeem**
 - Contact me at: <hamzaazeem023@gmail.com>
+=======
+
+>>>>>>> 5c1f013aa3046b951e2ba879c8e9ab98265c4a79
