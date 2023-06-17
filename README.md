@@ -17,8 +17,15 @@
 
   - run `pip install django pillow`
 
+- Then run the following command to install dependencies:
+  - `pip install -r requirements.txt`
+
+-Then run these commands:
+ -`python manage.py makemigrations`
+ -`python manage.py migrate`
+
 - To run the website in a development server:
-  - `cd` into the repo and run `python manage.py runserver`
+  -run `python manage.py runserver`
 
 ### Additional Setup
 
