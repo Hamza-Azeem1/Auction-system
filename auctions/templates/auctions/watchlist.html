@@ -1,60 +1,38 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-<h2 class="blue-text">Categories</h2>
+<h2 class="blue-text">User Watchlist</h2>
 
-{% if category_list %}
-<ul class="category-list bg-light">
-  {% for key, category in category_list.items %}
-  <li>
-    <a class="btn btn-warning" href="#{{ key }}">{{ key }}</a>
-  </li>
-  {% endfor %}
-</ul>
-<hr>
-{% for key, category in category_list.items %}
-<section id="{{ key }}" class="category-section">
-  <h3 class="category-title">{{ key }}</h3>
-  <div class="card-container">
-    {% for list in category %}
-    <div class="card">
-      <div class="card-header">
-        {{ list.listing.name }}
-        {% if user.is_authenticated and list.listing.user == user %}
-        <div class="owned-icon" title="You Own This Listing">
-          ★
-        </div>
-        {% endif %}
-      </div>
-      <div class="card-body">
-        <img class="card-img-top" alt="{{ list.listing.name }} - img" src="{{ list.listing.image.url }}" height="170" />
-        {% if list.bid %}
-        <h5 class="list-cost text-danger">Bidding has started on this item</h5>
-        <h5 class="list-cost">Current Highest Bid: <strong class="text-warning">${{ list.bid.highest_bid }}</strong>
-        </h5>
-        {% else %}
-        <h5 class="list-cost text-success">No Bids Currently Placed</h5>
-        <h5 class="list-cost">Bid Starts From: <strong>${{ list.listing.initial }}</strong></h5>
-        {% endif %}
-        {% if user.is_authenticated %}
-        <div class="links-box">
-          <a class="btn btn-outline-primary" href="{% url 'auctions:listing' list.listing.id %}">View Listing</a>
-          <a class="btn btn-outline-success" href="{% url 'auctions:add_to' list.listing.id %}">Add to WatchList</a>
-          {% if list.listing.user == user %}
-          <a class="btn btn-outline-danger" href="{% url 'auctions:close_listing' list.listing.id %}">Close Listing</a>
-          {% endif %}
-        </div>
-        {% else %}
-        <a class="nav-link" href="{% url 'auctions:login' %}">LogIn to view listing</a>
-        {% endif %}
-        <h6 class="text-muted right-align">Date added: {{ list.listing.created }}</h6>
-      </div>
+{% if listings %}
+<div class="card-container">
+  {% for item in listings %}
+  <div class="card">
+    <div class="card-header">
+      {{ item.listing.name }}
     </div>
-    {% endfor %}
+    <div class="card-body">
+      <img class="card-img-top" alt="{{ item.listing.name }} - img" src="{{ item.listing.image.url }}" height="170" />
+      {% if item.listing.bid %}
+      <h5 class="list-cost text-danger">Bidding has started on this item</h5>
+      <h5 class="list-cost">Current Highest Bid: <strong class="text-warning">${{ item.listing.bid.highest_bid
+          }}</strong></h5>
+      {% else %}
+      <h5 class="list-cost text-success">No Bids Currently Placed</h5>
+      <h5 class="list-cost">Bid Starts From: <strong>${{ item.listing.initial }}</strong></h5>
+      {% endif %}
+      <div class="links-box">
+        <a class="btn btn-outline-primary" href="{% url 'auctions:listing' item.listing.id %}">View Listing</a>
+        <a class="btn btn-outline-danger" href="{% url 'auctions:remove_from_watchlist' item.listing.id %}">
+          Remove from WatchList
+        </a>
+      </div>
+      <h6 class="text-muted right-align">Date added: {{ item.listing.created }}</h6>
+    </div>
   </div>
-  <hr>
-</section>
-{% endfor %}
+  {% endfor %}
+</div>
+{% else %}
+<p>No items in your watchlist.</p>
 {% endif %}
 
 {% endblock %}

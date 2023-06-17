@@ -1,6 +1,6 @@
 from django.urls import path
 from auctions import views
-
+from auctions.views import user_history
 
 app_name = "auctions"
 
@@ -12,9 +12,9 @@ urlpatterns = [
     path("listing/<int:listing_id>", views.listing, name="listing"),
     path("bid", views.bid, name="bid"),
     path("comment", views.comment, name="comment"),
-    path("watchlist", views.watchlist, name="watchlist"),
-    path("addtowatchlist/<int:item_id>", views.add_to_watchlist, name="add_to"),
-    path("removefrom/<int:item_id>", views.remove_from, name="remove"),
+    path('watchlist/', views.watchlist, name='watchlist'),
+    path('add_to_watchlist/<int:item_id>/', views.add_to_watchlist, name='add_to_watchlist'),
+    path('remove_from_watchlist/<int:item_id>/', views.remove_from_watchlist, name='remove_from_watchlist'),
     path("categories", views.categories, name="categories"),
     path("success", views.success, name="success"),
     path("addListing", views.addListing, name="add_listing"),
@@ -23,4 +23,5 @@ urlpatterns = [
     path('search/', views.search_results, name='search_results'),
     path('close_expired_auctions/', views.closeExpiredAuctions, name='close_expired_auctions'),
     path('listing/<int:listing_id>/update/', views.update_listing, name='update_listing'),
+    path('history/', user_history, name='user_history'),
 ]

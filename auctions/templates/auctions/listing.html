@@ -41,7 +41,7 @@
     {% endif %}
     <div class="action-buttons">
       <br>
-      <a class="btn btn-outline-success" href="{% url 'auctions:add_to' listing.id %}">Add to WatchList</a>
+      <a class="btn btn-outline-success" href="{% url 'auctions:add_to_watchlist' listing.id %}">Add to WatchList</a>
       <br>
       {% if listing.user == user %}
       <br>

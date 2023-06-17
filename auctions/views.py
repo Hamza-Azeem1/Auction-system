@@ -6,10 +6,13 @@ from django.urls import reverse
 from django.contrib import messages
 from decimal import *
 from django.db.models import Max
-from .models import User, Listing, Bid, Comment
+from .models import User, Listing, Bid, Comment, UserHistory, WatchlistItem
 from .forms import ListingForm
 from .decorators import Unauthenticated_user, Authenticated_user
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from django.apps import apps
+from django.contrib import messages
 
 # dictionary variable to keep track of individual's watchlist
 watch_list = dict()
@@ -137,31 +140,40 @@ def update_listing(request, listing_id):
     }
     return render(request, 'auctions/update_listing.html', context)
 
-
 @Authenticated_user
 def bid(request):
     if request.method == "POST":
-        new_bid = request.POST["bid"]
-        item_id = request.POST["list_id"]
+        new_bid = request.POST.get("bid")  # Use get() instead of indexing to handle missing bid value gracefully
+        item_id = request.POST.get("list_id")
 
-        item = Listing.objects.get(pk=item_id)
-        old_bid = Bid.objects.filter(listing=item)
+        if new_bid is not None and new_bid.strip():  # Check if bid value is not empty or None
+            try:
+                new_bid_decimal = Decimal(new_bid)  # Convert bid value to Decimal
 
-        if old_bid.count() < 1:
-            bid = Bid(user=request.user, listing=item, highest_bid=new_bid)
-            bid.save()
-            messages.success(request, 'Bid Placed Successfully!', fail_silently=True)
-        elif Decimal(new_bid) < old_bid[0].highest_bid:
-            messages.warning(request, 'The bid you placed was lower than needed.', fail_silently=True)
-        elif Decimal(new_bid) == old_bid[0].highest_bid:
-            messages.warning(request, 'The bid you placed was the same as the current bid', fail_silently=True)
+                item = Listing.objects.get(pk=item_id)
+                old_bid = Bid.objects.filter(listing=item)
+
+                if old_bid.count() < 1:
+                    bid = Bid(user=request.user, listing=item, highest_bid=new_bid_decimal)
+                    bid.save()
+                    messages.success(request, 'Bid Placed Successfully!', fail_silently=True)
+                elif new_bid_decimal < old_bid[0].highest_bid:
+                    messages.warning(request, 'The bid you placed was lower than needed.', fail_silently=True)
+                elif new_bid_decimal == old_bid[0].highest_bid:
+                    messages.warning(request, 'The bid you placed was the same as the current bid', fail_silently=True)
+                else:
+                    old_bid = Bid.objects.get(listing=item)
+                    old_bid.highest_bid = new_bid_decimal
+                    old_bid.user = request.user
+                    old_bid.save()
+                    messages.success(request, 'Bid Placed Successfully!', fail_silently=True)
+            except ValueError:
+                messages.warning(request, 'Invalid bid value. Please enter a valid number.', fail_silently=True)
         else:
-            old_bid = Bid.objects.get(listing=item)
-            old_bid.highest_bid = new_bid
-            old_bid.user = request.user
-            old_bid.save()
-            messages.success(request, 'Bid Placed Successfully!', fail_silently=True)
+            messages.warning(request, 'Bid value is required.', fail_silently=True)
+
     return redirect("auctions:listing", item_id)
+
 
 @Authenticated_user
 def comment(request):
@@ -176,49 +188,37 @@ def comment(request):
 
 @Authenticated_user
 def watchlist(request):
-    if request.user not in watch_list or watch_list[request.user] == []:
-        context = {
-            'message': "Nothing in your watchlist",
-        }
-        return render(request, "auctions/watchlist.html", context)
-    listings = []
-    for item_id in watch_list[request.user]:
-        item = Listing.objects.get(pk=item_id)
-        try:
-            bid = Bid.objects.get(listing=item)
-        except:
-            bid = None
-        listings.append({
-            'listing': item,
-            'bid': bid,
-        })
+    watchlist_items = WatchlistItem.objects.filter(user=request.user)
+
     context = {
-        'listings': listings,
+        'listings': watchlist_items,
     }
     return render(request, "auctions/watchlist.html", context)
 
 @Authenticated_user
 def add_to_watchlist(request, item_id):
-    if request.user not in watch_list:
-        watch_list[request.user] = []
-        watch_list[request.user].append(item_id)
-        messages.success(request, 'Successfully added item to your WatchList.', fail_silently=True)
-    elif item_id in watch_list[request.user]:
+    item = Listing.objects.get(pk=item_id)
+
+    if WatchlistItem.objects.filter(user=request.user, listing=item).exists():
         messages.warning(request, 'Item already present in your WatchList.', fail_silently=True)
     else:
-        watch_list[request.user].append(item_id)
+        watchlist_item = WatchlistItem(user=request.user, listing=item)
+        watchlist_item.save()
         messages.success(request, 'Successfully added item to your WatchList.', fail_silently=True)
+
     return redirect("auctions:index")
 
 @Authenticated_user
-def remove_from(request, item_id):
-    if request.user not in watch_list:
-        messages.warning(request, 'Cannot remove from empty WatchList.', fail_silently=True)
-    elif item_id in watch_list[request.user]:
-        watch_list[request.user].remove(item_id)
+def remove_from_watchlist(request, item_id):
+    item = Listing.objects.get(pk=item_id)
+
+    try:
+        watchlist_item = WatchlistItem.objects.get(user=request.user, listing=item)
+        watchlist_item.delete()
         messages.success(request, 'Successfully removed item from your WatchList.', fail_silently=True)
-    else:
-        messages.warning(request, 'Item not in your WatchList.', fail_silently=True)
+    except WatchlistItem.DoesNotExist:
+        messages.warning(request, 'Item not found in your WatchList.', fail_silently=True)
+
     return redirect("auctions:index")
 
 def categories(request):
@@ -326,3 +326,25 @@ def search_results(request):
         'query': query
     }
     return render(request, 'auctions/search_results.html', context)
+
+@Authenticated_user
+def user_history(request):
+    user = request.user
+    history = UserHistory.objects.filter(user=user).order_by('-timestamp')
+    history_with_details = []
+    for item in history:
+        listing = item.listing
+        listing_image_url = listing.image.url if listing.image else '/static/auctions/uploads/None/NIA.png'
+        history_with_details.append({
+            'listing_name': listing.name,
+            'listing_image_url': listing_image_url,
+            'category': listing.category,
+            'price': listing.initial,
+            'bid': listing.bid,  # Add this line to include the bid value
+            'timestamp': item.timestamp
+        })
+    return render(request, 'auctions/user_history.html', {'history': history_with_details})
+
+
+
+
