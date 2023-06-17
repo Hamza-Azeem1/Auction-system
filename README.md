@@ -20,9 +20,9 @@
 - Then run the following command to install dependencies:
   - `pip install -r requirements.txt`
 
--Then run these commands:
- -`python manage.py makemigrations`
- -`python manage.py migrate`
+- Then run these commands:
+ - `python manage.py makemigrations`
+ - `python manage.py migrate`
 
 - To run the website in a development server:
   -run `python manage.py runserver`
