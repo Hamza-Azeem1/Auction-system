@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-
+from auctions import views
 from . import settings
 
 from django.contrib.staticfiles.urls import static
@@ -23,7 +23,9 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", include("auctions.urls"))
+    path("", include("auctions.urls")),
+    path("", views.index, name="index"),
+    path('accounts/', include('allauth.urls')),
 ]
 
 # needed to display images from the models

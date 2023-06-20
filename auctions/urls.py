@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from auctions import views
 from auctions.views import user_history
 
