@@ -90,10 +90,11 @@ def register(request):
 
 @Authenticated_user
 def listing(request, listing_id):
-    item = Listing.objects.get(pk=listing_id)
+    item = get_object_or_404(Listing, pk=listing_id)
     old_bid = Bid.objects.filter(listing=item)
+
     if item.status == 'Closed':
-        try: # fails if no bid was placed on the item when it was closed
+        try:
             bid = old_bid[0]
             if bid.user == request.user:
                 context = {
@@ -101,23 +102,35 @@ def listing(request, listing_id):
                     'bid': bid,
                 }
                 return render(request, 'auctions/success.html', context)
-        except:
-            return render(request, 'auctions/closed.html') # return after try fails
-        return render(request, 'auctions/closed.html') # return after try passes and the if statement fails
+        except IndexError:
+            return render(request, 'auctions/closed.html')
+
     comments = Comment.objects.filter(listing=item)
+    
     if old_bid.count() == 1:
         default_bid = old_bid[0].highest_bid + 10
     else:
         default_bid = item.initial + 10
+
     try:
         bid_info = Bid.objects.get(listing=item)
-    except:
+    except Bid.DoesNotExist:
         bid_info = None
+
+    form = ListingForm(instance=item)
+
+    if request.method == 'POST':
+        form = ListingForm(request.POST, instance=item)
+        if form.is_valid():
+            form.save()
+            return render(request, 'auctions/success.html')
+    
     context = {
         'listing': item,
         'bid': bid_info,
         'comments': comments,
         'default_bid': default_bid,
+        'form': form,
     }
     return render(request, "auctions/listing.html", context)
 

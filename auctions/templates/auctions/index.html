@@ -64,7 +64,6 @@
       <h6 class="card-text">Category: <strong>{{ list.listing.category }}</strong></h6>
       <p class="card-text">End Time: <strong> <span id="end-time-{{ list.id }}">
             {{list.listing.end_time}}</span></strong></p>
-      <!-- <p class="card-text">Time Remaining: <span id="time-remaining-{{ list.id }}"></span></p> -->
       {% if user.is_authenticated %}
       <div class="links-box">
         <a class="btn btn-outline-primary" href="{% url 'auctions:listing' list.listing.id %}">View Listing</a>
@@ -74,6 +73,8 @@
         <a class="btn btn-outline-danger" href="{% url 'auctions:close_listing' list.listing.id %}">Close Listing</a>
         {% endif %}
       </div>
+      {% else %}
+      <a class="btn btn-outline-primary" href="{% url 'auctions:login' %}">Login to view listings</a>
       {% endif %}
     </div>
   </div>
