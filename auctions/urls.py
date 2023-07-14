@@ -21,7 +21,6 @@ urlpatterns = [
     path("user_listings", views.user_listings, name="user_listings"),
     path("close_listing/<int:listing_id>", views.close_listing, name="close_listing"),
     path('search/', views.search_results, name='search_results'),
-    path('close_expired_auctions/', views.closeExpiredAuctions, name='close_expired_auctions'),
     path('listing/<int:listing_id>/update/', views.update_listing, name='update_listing'),
     path('history/', user_history, name='user_history'),
 ]

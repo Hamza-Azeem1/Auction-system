@@ -277,19 +277,12 @@ def addListing(request):
     }
     return render(request, "auctions/addListing.html", context)
 
-def closeExpiredAuctions(request):
-    expired_listings = Listing.objects.filter(auction_end_time__lte=timezone.now())
+def closeExpiredAuctions():
+    current_time = timezone.now()
+    expired_listings = Listing.objects.filter(end_time__lte=current_time, bid__isnull=True)
 
     for listing in expired_listings:
-        highest_bid = Bid.objects.filter(listing=listing).aggregate(Max('amount'))['amount__max']
-        winning_bid = Bid.objects.filter(listing=listing, amount=highest_bid).first()
-        
-        if winning_bid:
-            listing.status = 'Closed'
-            listing.winner = winning_bid.bidder
-            listing.save()
-
-    return redirect('auctions:index')
+        listing.delete()
 
 @Authenticated_user
 def user_listings(request):
@@ -347,17 +340,19 @@ def user_history(request):
     history_with_details = []
     for item in history:
         listing = item.listing
+        highest_bid = UserHistory.objects.filter(listing=listing).aggregate(Max('bid'))['bid__max']
+        is_highest_bidder = item.bid == highest_bid
         listing_image_url = listing.image.url if listing.image else '/static/auctions/uploads/None/NIA.png'
         history_with_details.append({
             'listing_name': listing.name,
             'listing_image_url': listing_image_url,
             'category': listing.category,
             'price': listing.initial,
-            'bid': listing.bid,  # Add this line to include the bid value
-            'timestamp': item.timestamp
+            'bid': listing.bid,
+            'timestamp': item.timestamp,
+            'is_highest_bidder': is_highest_bidder
         })
     return render(request, 'auctions/user_history.html', {'history': history_with_details})
-
 
 
 
