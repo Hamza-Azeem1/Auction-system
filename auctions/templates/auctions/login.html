@@ -1,33 +1,14 @@
 {% extends "auctions/layout.html" %}
 {% load socialaccount %}
+{% load static %}
 {% block body %}
 
 <div class="container">
-    <h2 class="blue-text">Login</h2>
-
-    {% if message %}
-    <div class="alert alert-danger">{{ message }}</div>
-    {% endif %}
-
-    <form class="login-form" action="{% url 'auctions:login' %}" method="post">
-        {% csrf_token %}
-        <div class="form-group">
-            <input autofocus class="form-control" type="text" name="username" placeholder="Username">
-        </div>
-        <div class="form-group">
-            <input class="form-control" type="password" name="password" placeholder="Password">
-        </div>
-        <div class="text-center">
-            <input class="btn btn-outline-primary" type="submit" value="Login">
-        </div>
-    </form>
-
-    <!-- <div class="center-text">
-        Don't have an account? <a href="{% url 'auctions:register' %}">Register here.</a>
-    </div> -->
+    <h2 class="blue-text center-text">Continue with</h2>
     <div class="center-text">
-        <!-- <a href="{% url 'account_login' %}">Sign in with google</a> -->
-        <a href="{% provider_login_url 'google' %}">Login with Google</a>
+        <a href="{% provider_login_url 'google' %}">
+            <img src="{% static 'auctions/google.png' %}" alt="Google">
+        </a>
     </div>
 </div>
 
