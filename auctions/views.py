@@ -268,7 +268,7 @@ def addListing(request):
             newListing.save()
             messages.success(request, 'Successfully created your listing.', fail_silently=True)
         else:
-            messages.error(request, 'Invalid Listing!', fail_silently=True)
+            messages.error(request, 'PLEASE select correct date', fail_silently=True)
             return redirect("auctions:add_listing")
         return redirect("auctions:index")
     form = ListingForm()
