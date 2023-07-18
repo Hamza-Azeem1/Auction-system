@@ -16,7 +16,7 @@
             <h5 class="crd-title">{{ list.name }}</h5>
             <p class="crd-text">Initial Price: ${{ list.initial }}</p>
             <p class="crd-text">Category: {{ list.category }}</p>
-            <a href="{% url 'auctions:listing' list.id %}" class="btn btn-outline-primary">View Listing</a>
+            <a href="{% url 'auctions:listing' list.id %}" class="btn btn-outline-primary">View Product</a>
         </div>
     </div>
     {% endfor %}

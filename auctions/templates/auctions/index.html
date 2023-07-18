@@ -4,7 +4,7 @@
 {% block body %}
 <div class="add-listing-container">
   <h2 class="blue-text margin-bot">
-    Active Listings
+    Active Products
   </h2>
   <!-- Search Bar -->
   <div class="search-bar-container">
@@ -16,7 +16,7 @@
 
   {% if user.is_authenticated %}
   <div class="btn-container">
-    <a class="btn btn-outline-success plus-link" href="{% url 'auctions:add_listing' %}">+ Add new Listing</a>
+    <a class="btn btn-outline-success plus-link" href="{% url 'auctions:add_listing' %}">+ Add new Product</a>
     <a class="btn btn-outline-success plus-link" href="{% url 'auctions:user_listings' %}">DASHBOARD</a>
   </div>
   {% endif %}
@@ -66,15 +66,15 @@
             {{list.listing.end_time}}</span></strong></p>
       {% if user.is_authenticated %}
       <div class="links-box">
-        <a class="btn btn-outline-primary" href="{% url 'auctions:listing' list.listing.id %}">View Listing</a>
+        <a class="btn btn-outline-primary" href="{% url 'auctions:listing' list.listing.id %}">View Product</a>
         <a class="btn btn-outline-success" href="{% url 'auctions:add_to_watchlist' list.listing.id %}">Add to
           WatchList</a>
         {% if list.listing.user == user %}
-        <a class="btn btn-outline-danger" href="{% url 'auctions:close_listing' list.listing.id %}">Close Listing</a>
+        <a class="btn btn-outline-danger" href="{% url 'auctions:close_listing' list.listing.id %}">Close Auction</a>
         {% endif %}
       </div>
       {% else %}
-      <a class="btn btn-outline-primary" href="{% url 'auctions:login' %}">Login to view listings</a>
+      <a class="btn btn-outline-primary" href="{% url 'auctions:login' %}">Login to view Products</a>
       {% endif %}
     </div>
   </div>
@@ -82,7 +82,7 @@
 </div>
 {% else %}
 <div class="no-listings-msg">
-  <h4>No Active Listings Found</h4>
+  <h4>No Active Products Found</h4>
 </div>
 {% endif %}
 

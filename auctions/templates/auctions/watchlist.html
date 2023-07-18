@@ -21,7 +21,7 @@
       <h5 class="list-cost">Bid Starts From: <strong>${{ item.listing.initial }}</strong></h5>
       {% endif %}
       <div class="links-box">
-        <a class="btn btn-outline-primary" href="{% url 'auctions:listing' item.listing.id %}">View Listing</a>
+        <a class="btn btn-outline-primary" href="{% url 'auctions:listing' item.listing.id %}">View Product</a>
         <a class="btn btn-outline-danger" href="{% url 'auctions:remove_from_watchlist' item.listing.id %}">
           Remove from WatchList
         </a>

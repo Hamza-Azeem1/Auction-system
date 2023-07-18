@@ -38,15 +38,15 @@
         {% endif %}
         {% if user.is_authenticated %}
         <div class="links-box">
-          <a class="btn btn-outline-primary" href="{% url 'auctions:listing' list.listing.id %}">View Listing</a>
+          <a class="btn btn-outline-primary" href="{% url 'auctions:listing' list.listing.id %}">View Product</a>
           <a class="btn btn-outline-success" href="{% url 'auctions:add_to_watchlist' list.listing.id %}">Add to
             WatchList</a>
           {% if list.listing.user == user %}
-          <a class="btn btn-outline-danger" href="{% url 'auctions:close_listing' list.listing.id %}">Close Listing</a>
+          <a class="btn btn-outline-danger" href="{% url 'auctions:close_listing' list.listing.id %}">close Auction</a>
           {% endif %}
         </div>
         {% else %}
-        <a class="nav-link" href="{% url 'auctions:login' %}">LogIn to view listing</a>
+        <a class="nav-link" href="{% url 'auctions:login' %}">LogIn to view Product</a>
         {% endif %}
         <h6 class="text-muted right-align">Date added: {{ list.listing.created }}</h6>
       </div>

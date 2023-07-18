@@ -46,8 +46,8 @@
       {% if listing.user == user %}
       <br>
       <br>
-      <a class="btn btn-outline-primary" href="{% url 'auctions:update_listing' listing.id %}">Update Listing</a>
-      <a class="btn btn-outline-danger" href="{% url 'auctions:close_listing' listing.id %}">Close Listing</a>
+      <a class="btn btn-outline-primary" href="{% url 'auctions:update_listing' listing.id %}">Update Product</a>
+      <a class="btn btn-outline-danger" href="{% url 'auctions:close_listing' listing.id %}">Close Auction</a>
       {% endif %}
     </div>
   </div>

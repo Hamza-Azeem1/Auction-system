@@ -3,7 +3,7 @@
 {% block body %}
 
 <div class="container">
-  <h2 class="blue-text">Add New Listing</h2>
+  <h2 class="blue-text">Add New Product</h2>
 
   {% if messages %}
   {% for message in messages %}
@@ -17,7 +17,7 @@
     enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
-    <button class="btn btn-outline-primary" type="submit">Add Listing</button>
+    <button class="btn btn-outline-primary" type="submit">Add Product</button>
   </form>
 </div>
 {% endblock %}

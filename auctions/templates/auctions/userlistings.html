@@ -32,14 +32,14 @@
           {% endif %}
           {% if user.is_authenticated %}
           <div class="d-grid gap-2">
-            <a class="btn btn-outline-primary" href="{% url 'auctions:listing' list.listing.id %}">View Listing</a>
+            <a class="btn btn-outline-primary" href="{% url 'auctions:listing' list.listing.id %}">View Product</a>
             {% if list.listing.user == user %}
             <a class="btn btn-outline-danger" href="{% url 'auctions:close_listing' list.listing.id %}">Close
-              Listing</a>
+              Auction</a>
             {% endif %}
           </div>
           {% else %}
-          <a class="nav-link" href="{% url 'auctions:login' %}">Log In to view listing</a>
+          <a class="nav-link" href="{% url 'auctions:login' %}">Log In to view Product</a>
           {% endif %}
           <h6 class="right-align">Date added: {{ list.listing.created }}</h6>
         </div>
