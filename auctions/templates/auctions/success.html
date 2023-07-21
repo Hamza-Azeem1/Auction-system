@@ -1,20 +1,36 @@
 {% extends "auctions/layout.html" %}
 
 {% block title %}
-Success
+Auction Success
 {% endblock %}
 
 {% block body %}
 
 <div class="container">
-  <div class="card border-success success-card">
-    <h4 class="card-header border-success bg-light">Success {{ request.user }}!</h4>
-    <div class="card-body">
-      <img src="{{ listing.image.url }}" alt="{{ listing.name }}" height="200" />
-      <br>
-      <p class="winning-bid">Congratulations, you have successfully won the bid for:</p>
-      <h3 class="listing-name">{{ listing.name }}</h3>
-      <p class="bid-price">For the price of: <strong>${{ bid.highest_bid }}</strong></p>
-    </div>
+  {% if listing.status == 'Closed' %}
+  <div class="alert alert-success" role="alert">
+    The auction for <strong>{{ listing.name }}</strong> is closed.
   </div>
+  {% if listing.winner == user %}
+  <div class="alert alert-info" role="alert">
+    Congratulations! You won the auction!
+  </div>
+  <div class="winner-info">
+    <h5>Winner Information</h5>
+    <p>Winner: {{ listing.winner.username }}</p>
+    <p>Winning Bid: ${{ listing.highest_bid }}</p>
+  </div>
+  {% else %}
+  <div class="alert alert-warning" role="alert">
+    The auction was won by <strong>{{ listing.winner.username }}</strong> with a bid of <strong>${{ listing.highest_bid
+      }}</strong>.
+  </div>
+  {% endif %}
+  {% else %}
+  <div class="alert alert-danger" role="alert">
+    The auction is still open. You are not allowed to access this page.
+  </div>
+  {% endif %}
 </div>
+
+{% endblock %}

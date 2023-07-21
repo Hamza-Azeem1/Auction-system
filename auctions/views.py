@@ -13,6 +13,8 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.apps import apps
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
+from django.http import Http404
 
 # dictionary variable to keep track of individual's watchlist
 watch_list = dict()
@@ -30,9 +32,11 @@ def index(request):
             'bid': bid,
         })
     context = {
-        'listings': listings,
+        'listings': listings,  # Make sure the variable name here is 'listings'
     }
     return render(request, "auctions/index.html", context)
+
+
 
 @Unauthenticated_user
 def login_view(request):
@@ -60,33 +64,6 @@ def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("auctions:index"))
 
-
-@Unauthenticated_user
-def register(request):
-    if request.method == "POST":
-        username = request.POST["username"]
-        email = request.POST["email"]
-
-        # Ensure password matches confirmation
-        password = request.POST["password"]
-        confirmation = request.POST["confirmation"]
-        if password != confirmation:
-            return render(request, "auctions/register.html", {
-                "message": "Passwords must match."
-            })
-
-        # Attempt to create new user
-        try:
-            user = User.objects.create_user(username, email, password)
-            user.save()
-        except IntegrityError:
-            return render(request, "auctions/register.html", {
-                "message": "Username already taken."
-            })
-        login(request, user)
-        return HttpResponseRedirect(reverse("auctions:index"))
-    else:
-        return render(request, "auctions/register.html")
 
 @Authenticated_user
 def listing(request, listing_id):
@@ -133,6 +110,7 @@ def listing(request, listing_id):
         'form': form,
     }
     return render(request, "auctions/listing.html", context)
+
 
 def update_listing(request, listing_id):
     listing = get_object_or_404(Listing, pk=listing_id)
@@ -234,6 +212,7 @@ def remove_from_watchlist(request, item_id):
 
     return redirect("auctions:index")
 
+
 def categories(request):
     category = dict()
     listings = Listing.objects.filter(status="Pending")
@@ -255,7 +234,29 @@ def categories(request):
 
 @Authenticated_user
 def success(request):
-    return render(request, "auctions/success.html")
+    try:
+        # Get the user's highest bid and the related listing
+        highest_bid = Bid.objects.filter(user=request.user).order_by('-highest_bid').first()
+        if not highest_bid:
+            raise Http404("You haven't placed any bids yet.")
+        
+        listing = highest_bid.listing
+        
+        # Check if the auction is closed
+        if listing.status != 'Closed':
+            raise Http404("The auction is still active.")
+        
+        # Check if the user is the highest bidder
+        if highest_bid == listing.highest_bid:
+            context = {
+                'listing': listing,
+            }
+            return render(request, 'auctions/success.html', context)
+        else:
+            raise Http404("You are not the highest bidder.")
+    except Http404 as e:
+        messages.error(request, str(e), fail_silently=True)
+        return redirect("auctions:index")
 
 @Authenticated_user
 def addListing(request):
@@ -269,7 +270,7 @@ def addListing(request):
             messages.success(request, 'Successfully created your listing.', fail_silently=True)
         else:
             messages.error(request, 'PLEASE select correct date', fail_silently=True)
-            return redirect("auctions:add_listing")
+            return redirect("auctions:addListing")
         return redirect("auctions:index")
     form = ListingForm()
     context = {
@@ -277,17 +278,10 @@ def addListing(request):
     }
     return render(request, "auctions/addListing.html", context)
 
-def closeExpiredAuctions():
-    current_time = timezone.now()
-    expired_listings = Listing.objects.filter(end_time__lte=current_time, bid__isnull=True)
-
-    for listing in expired_listings:
-        listing.delete()
-
 @Authenticated_user
 def user_listings(request):
     category = dict()
-    current_user_listings = Listing.objects.filter(user=request.user, status='Pending')
+    current_user_listings = Listing.objects.filter(user=request.user)
     
     for item in current_user_listings:
         try:
@@ -321,6 +315,16 @@ def close_listing(request, listing_id):
         messages.warning(request, 'Unable to close listing! Authentication error.', fail_silently=True)
     return redirect("auctions:user_listings")
 
+
+def closeExpiredAuctions():
+    current_time = timezone.now()
+    expired_listings = Listing.objects.filter(end_time__lte=current_time, status='Pending')
+
+    for listing in expired_listings:
+        listing.status = 'Closed'
+        listing.close_auction()
+        listing.save()
+
 def search_results(request):
     query = request.GET.get('query')
     if query:
@@ -353,6 +357,3 @@ def user_history(request):
             'is_highest_bidder': is_highest_bidder
         })
     return render(request, 'auctions/user_history.html', {'history': history_with_details})
-
-
-
