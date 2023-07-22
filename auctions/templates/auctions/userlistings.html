@@ -1,5 +1,5 @@
 {% extends "auctions/layout.html" %}
-
+{% load static %}
 {% block body %}
 <h2 class="blue-text">Categories</h2>
 
@@ -24,8 +24,7 @@
           <h5 class="card-title">{{ list.listing.name }}</h5>
           {% if list.bid %}
           <p class="card-text text-danger">Bidding has started on this item</p>
-          <p class="card-text">Current Highest Bid: <strong class="text-warning">
-              ${{ list.listing.highest_bid}}</strong></p>
+          <p class="card-text">Current Highest Bid: <strong class="text-warning">${{ list.bid.amount }}</strong></p>
           {% else %}
           <p class="card-text text-success">No Bids Currently Placed</p>
           <p class="card-text">Bid Starts From: <strong>${{ list.listing.initial }}</strong></p>

@@ -33,6 +33,7 @@ class Listing(models.Model):
     bid = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     highest_bid = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     winner = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='won_listings')
+    is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.name} - starts at ${self.initial}"
@@ -45,17 +46,17 @@ class Listing(models.Model):
         return len(self.name) > 0 and self.initial > 0
 
     def is_auction_expired(self):
-        return self.end_time <= timezone.now()
+        return self.end_time <= timezone.now() and self.status == Status.PENDING.value
 
     def close_auction(self):
         if self.status == Status.CLOSED.value:
             return
-
+    
         if not self.bid:
             self.status = Status.CLOSED.value
             self.save()
             return
-
+    
         self.highest_bid = self.bids.order_by('-highest_bid').first().highest_bid
         self.winner = self.bids.filter(highest_bid=self.highest_bid).first().user
         self.status = Status.CLOSED.value

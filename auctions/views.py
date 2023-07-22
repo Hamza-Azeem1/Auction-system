@@ -284,10 +284,10 @@ def user_listings(request):
     current_user_listings = Listing.objects.filter(user=request.user)
     
     for item in current_user_listings:
-        try:
-            bid = Bid.objects.get(listing=item)
-        except Bid.DoesNotExist:
-            bid = None
+        # try:
+        #     bid = Bid.objects.get(listing=item)
+        # except Bid.DoesNotExist:
+        #     bid = None
         
         if item.category not in category:
             category[item.category] = []
@@ -313,7 +313,7 @@ def close_listing(request, listing_id):
         messages.success(request, 'Listing successfully closed.', fail_silently=True)
     else:
         messages.warning(request, 'Unable to close listing! Authentication error.', fail_silently=True)
-    return redirect("auctions:user_listings")
+    return redirect("auctions:index")
 
 
 def closeExpiredAuctions():
