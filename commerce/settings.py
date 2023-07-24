@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'django_apscheduler',
 ]
 
 MIDDLEWARE = [
@@ -163,6 +164,3 @@ ACOUNT_LOGOUT_REDIRECT_URL =  'account_login'
 
 SOCIALACCOUNT_LOGIN_ON_GET=True
 
-
-STRIPE_PUBLISHABLE_KEY = 'pk_test_51NPmdpKKXvVdQbiDnf91tRzVzsFYr5ntYXld3QMIB6l7ZXFLmtswiWhGruSFzF6UTFslZ8o9ea0DPHayXJ1yVnMp00SZTntyPn'
-STRIPE_SECRET_KEY = 'sk_test_51NPmdpKKXvVdQbiDB2ghKGbcbAIpLadO4lLgu49qXHr0WZvwBnOomrnc7QrLSrtI71oECfX90SSUBxiMjLGtqvsE00cy42lqRh'

@@ -455,6 +455,7 @@ hr {
 .listing-name {
   font-size: 24px;
   margin-bottom: 10px;
+  color: #fff;
 }
 
 .listing-img img {
@@ -470,10 +471,12 @@ hr {
 
 .description {
   margin-bottom: 10px;
+  color: #fff;
 }
 
 .current-bid,
-.no-bid {
+.no-bid,
+p {
   padding: 10px;
   background-color: #212529;
   color: white;
@@ -489,6 +492,7 @@ hr {
 .start-time,
 .end-time {
   margin-bottom: 5px;
+  color: #fff;
 }
 
 .bid-form {

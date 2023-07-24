@@ -79,7 +79,7 @@
         {% if list.bid and list.bid.user == user %}
         <a class="btn btn-outline-success" href="{% url 'auctions:success' %}">View Winner</a>
         {% else %}
-        <a class="btn btn-outline-secondary" href="#">Auction Closed</a>
+        <a class="btn btn-outline-secondary" href="#">Closed</a>
         {% endif %}
         {% endif %}
       </div>

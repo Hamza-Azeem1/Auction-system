@@ -3,7 +3,7 @@ from django.db import models
 from django.utils import timezone
 from enum import Enum
 
-class Category(Enum):
+class Category(models.TextChoices):
     ACCESSORIES = 'Accessories'
     ANTIQUES = 'Antiques'
     CLOTHES = 'Clothes'
@@ -12,7 +12,7 @@ class Category(Enum):
     VALUABLES = 'Valuables'
     OTHER = 'Other'
 
-class Status(Enum):
+class Status(models.TextChoices):
     PENDING = 'Pending'
     CLOSED = 'Closed'
 
@@ -24,12 +24,12 @@ class Listing(models.Model):
     initial = models.DecimalField(max_digits=10, decimal_places=2)
     user = models.ForeignKey(User, blank=False, on_delete=models.CASCADE, related_name='listings')
     image = models.ImageField(upload_to='listing_images', default='None/NIA.png')
-    category = models.CharField(max_length=11, choices=[(cat.name, cat.value) for cat in Category], default=Category.OTHER.value)
-    status = models.CharField(max_length=7, choices=[(stat.name, stat.value) for stat in Status], default=Status.PENDING.value)
+    category = models.CharField(max_length=11, choices=Category.choices, default=Category.OTHER)
+    status = models.CharField(max_length=7, choices=Status.choices, default=Status.PENDING)
     created = models.DateField(auto_now_add=True)
     description = models.TextField(blank=True)
     start_time = models.DateTimeField(default=timezone.now)
-    end_time = models.DateTimeField()
+    end_time = models.DateTimeField(default=timezone.now)
     bid = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     highest_bid = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     winner = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='won_listings')
@@ -46,21 +46,7 @@ class Listing(models.Model):
         return len(self.name) > 0 and self.initial > 0
 
     def is_auction_expired(self):
-        return self.end_time <= timezone.now() and self.status == Status.PENDING.value
-
-    def close_auction(self):
-        if self.status == Status.CLOSED.value:
-            return
-    
-        if not self.bid:
-            self.status = Status.CLOSED.value
-            self.save()
-            return
-    
-        self.highest_bid = self.bids.order_by('-highest_bid').first().highest_bid
-        self.winner = self.bids.filter(highest_bid=self.highest_bid).first().user
-        self.status = Status.CLOSED.value
-        self.save()
+        return timezone.now() >= self.end_time and self.status == Status.PENDING.value
 
     def save(self, *args, **kwargs):
         if self.is_auction_expired() and self.status == Status.PENDING.value:
