@@ -44,7 +44,6 @@
 - The crucial files in the repo home directory are:
 
   - `manage.py` : the python file required to run the website
-  - `db.mysql`: the website uses `mysql` database which stores the data in this file
 
 - The `auctions` directory has the files for the auction application which includes:
 
