@@ -79,6 +79,7 @@ def listing(request, listing_id):
                     'bid': bid,
                 }
                 return render(request, 'auctions/success.html', context)
+            return render(request, 'auctions/closed.html')
         except IndexError:
             return render(request, 'auctions/closed.html')
 
@@ -147,6 +148,8 @@ def bid(request):
                 if old_bid.count() < 1:
                     bid = Bid(user=request.user, listing=item, highest_bid=new_bid_decimal)
                     bid.save()
+                    item.bid = new_bid_decimal
+                    item.save()
                     messages.success(request, 'Bid Placed Successfully!', fail_silently=True)
                 elif new_bid_decimal < old_bid[0].highest_bid:
                     messages.warning(request, 'The bid you placed was lower than needed.', fail_silently=True)
@@ -157,6 +160,8 @@ def bid(request):
                     old_bid.highest_bid = new_bid_decimal
                     old_bid.user = request.user
                     old_bid.save()
+                    item.bid = new_bid_decimal
+                    item.save()
                     messages.success(request, 'Bid Placed Successfully!', fail_silently=True)
             except ValueError:
                 messages.warning(request, 'Invalid bid value. Please enter a valid number.', fail_silently=True)

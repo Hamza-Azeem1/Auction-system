@@ -9,3 +9,6 @@ requirements.in
 
 # uploads (images)
 /uploads/
+
+# ide
+.idea/
