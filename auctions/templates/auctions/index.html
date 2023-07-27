@@ -69,22 +69,12 @@
         <a class="btn btn-outline-primary" href="{% url 'auctions:listing' list.listing.id %}">View Product</a>
         <a class="btn btn-outline-success" href="{% url 'auctions:add_to_watchlist' list.listing.id %}">Add to
           WatchList</a>
-        {% if list.listing.status == 'Pending' %}
-        {% if list.listing.user == user %}
-        <a class="btn btn-outline-danger" href="{% url 'auctions:close_listing' list.listing.id %}">Close Auction</a>
-        {% else %}
-        <a class="btn btn-outline-warning" href="#">Pending</a>
-        {% endif %}
-        {% elif list.listing.status == 'Closed' %}
-        {% if list.bid and list.bid.user == user %}
-        <a class="btn btn-outline-success" href="{% url 'auctions:success' %}">View Winner</a>
-        {% else %}
-        <a class="btn btn-outline-secondary" href="#">Closed</a>
-        {% endif %}
-        {% endif %}
       </div>
       {% else %}
       <a class="btn btn-outline-primary" href="{% url 'auctions:login' %}">Login to view Products</a>
+      {% endif %}
+      {% if list.listing.status == 'Closed' and list.listing.highest_bid %}
+      <a href="{% url 'auctions:success' %}" class="btn btn-outline-primary">View Winner</a>
       {% endif %}
     </div>
   </div>

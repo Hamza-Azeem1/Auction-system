@@ -1,0 +1,25 @@
+{% extends "auctions/base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Auction Checkout</h2>
+    <h4>{{ listing.title }}</h4>
+    <p>Current Highest Bid: {{ listing.highest_bid }}</p>
+    <p>Total Amount: ${{ amount / 100 }}</p>
+
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form action="{% url 'auctions:checkout' %}" method="post">
+        {% csrf_token %}
+        <script src="https://checkout.stripe.com/checkout.js" class="stripe-button" data-key="{{ STRIPE_PUBLIC_KEY }}"
+            data-amount="{{ amount }}" data-name="Auction Payment" data-description="{{ listing.title }}"
+            data-image="https://stripe.com/img/documentation/checkout/marketplace.png" data-locale="auto"
+            data-currency="usd">
+            </script>
+    </form>
+</div>
+{% endblock %}

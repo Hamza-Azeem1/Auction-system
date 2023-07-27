@@ -15,13 +15,74 @@ from django.apps import apps
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
+from decimal import Decimal
+from django.http import JsonResponse
+import stripe
+from django.conf import settings
+
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 # dictionary variable to keep track of individual's watchlist
 watch_list = dict()
 
+def checkout(request):
+    listing_id = request.GET.get('listing_id')
+    if not listing_id:
+        return redirect("auctions:index")
+
+    try:
+        listing = Listing.objects.get(pk=listing_id, status='Closed', highest_bid__isnull=False)
+    except Listing.DoesNotExist:
+        return redirect("auctions:index")
+
+    # Get the amount to charge the user (you may want to handle currency conversion, etc.)
+    amount = int(listing.highest_bid * 100)  # Amount in cents
+
+    if request.method == "POST":
+        # Token is created by Stripe.js
+        token = request.POST.get("stripeToken")
+
+        try:
+            # Create a charge: this will charge the user's card
+            charge = stripe.Charge.create(
+                amount=amount,
+                currency="usd",
+                source=token,
+                description="Auction Payment",
+            )
+
+            # Update the listing to mark it as paid or perform any other necessary actions
+            listing.paid = True
+            listing.save()
+
+            return redirect("auctions:thank_you")
+        except stripe.error.CardError as e:
+            # Display error to the user
+            return render(request, "auctions/checkout.html", {"error": str(e)})
+
+    return render(request, "auctions/checkout.html", {"listing": listing, "amount": amount})
+
+def view_winner(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id)
+
+    # Get the highest bid for this listing
+    highest_bid = Bid.objects.filter(listing=listing).order_by('-highest_bid').first()
+
+    winner = None
+    if highest_bid:
+        winner = highest_bid.user
+
+    context = {
+        'listing': listing,
+        'winner': winner,
+    }
+
+    return render(request, 'auctions/winner.html', context)    
+
 def index(request):
     listings = []
-    items = Listing.objects.filter(status="Pending")
+    items = Listing.objects.all()
     for item in items:
         try:
             bid = Bid.objects.get(listing=item)
@@ -40,22 +101,6 @@ def index(request):
 
 @Unauthenticated_user
 def login_view(request):
-    if request.method == "POST":
-
-        # Attempt to sign user in
-        username = request.POST["username"]
-        password = request.POST["password"]
-        user = authenticate(request, username=username, password=password)
-
-        # Check if authentication successful
-        if user is not None:
-            login(request, user)
-            return HttpResponseRedirect(reverse("auctions:index"))
-        else:
-            return render(request, "auctions/login.html", {
-                "message": "Invalid username and/or password."
-            })
-    else:
         return render(request, "auctions/login.html")
 
 
@@ -79,6 +124,7 @@ def listing(request, listing_id):
                     'bid': bid,
                 }
                 return render(request, 'auctions/success.html', context)
+            return render(request, 'auctions/closed.html')
         except IndexError:
             return render(request, 'auctions/closed.html')
 
@@ -147,6 +193,8 @@ def bid(request):
                 if old_bid.count() < 1:
                     bid = Bid(user=request.user, listing=item, highest_bid=new_bid_decimal)
                     bid.save()
+                    item.bid = new_bid_decimal
+                    item.save()
                     messages.success(request, 'Bid Placed Successfully!', fail_silently=True)
                 elif new_bid_decimal < old_bid[0].highest_bid:
                     messages.warning(request, 'The bid you placed was lower than needed.', fail_silently=True)
@@ -157,6 +205,8 @@ def bid(request):
                     old_bid.highest_bid = new_bid_decimal
                     old_bid.user = request.user
                     old_bid.save()
+                    item.bid = new_bid_decimal
+                    item.save()
                     messages.success(request, 'Bid Placed Successfully!', fail_silently=True)
             except ValueError:
                 messages.warning(request, 'Invalid bid value. Please enter a valid number.', fail_silently=True)

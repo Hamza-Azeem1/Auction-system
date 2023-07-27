@@ -19,6 +19,7 @@ Auction Success
     <h5>Winner Information</h5>
     <p>Winner: {{ listing.winner.username }}</p>
     <p>Winning Bid: ${{ listing.highest_bid }}</p>
+    <a href="{% url 'auctions:checkout' %}" class="btn btn-outline-primary">Proceed to checkout</a>
   </div>
   {% else %}
   <div class="alert alert-warning" role="alert">

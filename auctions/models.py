@@ -32,6 +32,7 @@ class Listing(models.Model):
     end_time = models.DateTimeField(default=timezone.now)
     bid = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     highest_bid = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    highest_bidder_username = models.CharField(max_length=150, blank=True, null=True)
     winner = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='won_listings')
     is_deleted = models.BooleanField(default=False)
 
@@ -41,6 +42,16 @@ class Listing(models.Model):
     @property
     def search_name(self):
         return self.name.lower()
+
+    def update_highest_bidder(self, bid):
+        self.highest_bidder_username = bid.user.username
+        self.save()    
+
+    def get_winner(self):
+        highest_bid = self.bid_set.order_by('-highest_bid').first()
+        if highest_bid:
+            return highest_bid.user
+        return None    
 
     def is_valid_listing(self):
         return len(self.name) > 0 and self.initial > 0
