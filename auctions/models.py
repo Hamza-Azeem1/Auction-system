@@ -16,8 +16,8 @@ class Status(models.TextChoices):
     PENDING = 'Pending'
     CLOSED = 'Closed'
 
-class User(AbstractUser):
-    pass
+# class User(AbstractUser):
+#     pass
 
 class Listing(models.Model):
     name = models.CharField(max_length=100, blank=False)

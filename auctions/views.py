@@ -283,21 +283,20 @@ def categories(request):
     return render(request, "auctions/category.html", context)
 
 @Authenticated_user
-def success(request):
+def success(request, listing_id):
     try:
-        # Get the user's highest bid and the related listing
-        highest_bid = Bid.objects.filter(user=request.user).order_by('-highest_bid').first()
+        listing = get_object_or_404(Listing, pk=listing_id)
+        highest_bid = Bid.objects.filter(listing=listing).order_by('-highest_bid').first()
         if not highest_bid:
             raise Http404("You haven't placed any bids yet.")
-        
-        listing = highest_bid.listing
+
         
         # Check if the auction is closed
         if listing.status != 'Closed':
             raise Http404("The auction is still active.")
         
         # Check if the user is the highest bidder
-        if highest_bid == listing.highest_bid:
+        if highest_bid.user == request.user:
             context = {
                 'listing': listing,
             }
