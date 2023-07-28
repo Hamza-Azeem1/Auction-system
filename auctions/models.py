@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 from enum import Enum
 
 class Category(models.TextChoices):
@@ -11,7 +12,6 @@ class Category(models.TextChoices):
     ELECTRONICS = 'Electronics'
     VALUABLES = 'Valuables'
     OTHER = 'Other'
-
 class Status(models.TextChoices):
     PENDING = 'Pending'
     CLOSED = 'Closed'

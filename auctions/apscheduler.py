@@ -36,6 +36,7 @@ def close_expired_auctions():
     with lock:
         current_time = timezone.now()
         print('Running close_expired_auctions')
+        print('Running close_expired_auctions', current_time)
 
         # Get expired listings that are pending
         expired_listings = Listing.objects.filter(
