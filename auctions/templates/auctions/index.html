@@ -74,7 +74,7 @@
       <a class="btn btn-outline-primary" href="{% url 'auctions:login' %}">Login to view Products</a>
       {% endif %}
       {% if list.listing.status == 'Closed' and list.listing.highest_bid %}
-      <a href="{% url 'auctions:success' %}" class="btn btn-outline-primary">View Winner</a>
+      <a href="{% url 'auctions:success' list.listing.id %}" class="btn btn-outline-primary">View Winner</a>
       {% endif %}
     </div>
   </div>

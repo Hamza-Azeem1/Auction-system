@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 from enum import Enum
 
 class Category(models.TextChoices):
@@ -16,8 +17,8 @@ class Status(models.TextChoices):
     PENDING = 'Pending'
     CLOSED = 'Closed'
 
-class User(AbstractUser):
-    pass
+# class User(AbstractUser):
+#     pass
 
 class Listing(models.Model):
     name = models.CharField(max_length=100, blank=False)

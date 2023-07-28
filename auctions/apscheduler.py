@@ -35,7 +35,7 @@ def close_expired_auctions():
 
     with lock:
         current_time = timezone.now()
-        print('Running close_expired_auctions')
+        print('Running close_expired_auctions', current_time)
 
         # Get expired listings that are pending
         expired_listings = Listing.objects.filter(
@@ -48,15 +48,15 @@ def close_expired_auctions():
             highest_bid = Bid.objects.filter(listing=listing).order_by('-highest_bid').first()
 
             if highest_bid is None:
-                # If there are no bids, set the status to "Closed" and highest_bid to None
-                listing.status = Status.CLOSED
-                listing.highest_bid = None
+                # # If there are no bids, set the status to "Closed" and highest_bid to None
+                # listing.status = Status.CLOSED
+                # listing.highest_bid = None
+                listing.delete()
             else:
                 # If there are bids, set the status to "Closed" and update the highest_bid field
                 listing.status = Status.CLOSED
                 listing.highest_bid = highest_bid.highest_bid
-
-            listing.save()
+                listing.save()
 
         print(f'Number of expired listings found: {expired_listings.count()}')
 
