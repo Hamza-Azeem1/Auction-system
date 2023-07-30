@@ -84,7 +84,7 @@ WSGI_APPLICATION = 'commerce.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'auctions_db',
+        'NAME': 'auction_db',
         'USER': 'root',
         'PASSWORD': '8tQe9Q4c',
         'HOST': 'localhost',  
@@ -120,8 +120,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'Europe/Warsaw'
-
+TIME_ZONE = 'Asia/Karachi'
 USE_I18N = True
 
 USE_L10N = True

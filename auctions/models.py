@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import User
 from enum import Enum
 
 class Category(models.TextChoices):
@@ -12,12 +11,13 @@ class Category(models.TextChoices):
     ELECTRONICS = 'Electronics'
     VALUABLES = 'Valuables'
     OTHER = 'Other'
+
 class Status(models.TextChoices):
     PENDING = 'Pending'
     CLOSED = 'Closed'
 
-# class User(AbstractUser):
-#     pass
+class User(AbstractUser):
+    pass
 
 class Listing(models.Model):
     name = models.CharField(max_length=100, blank=False)
@@ -83,25 +83,28 @@ class Comment(models.Model):
     def __str__(self):
         return f"{self.comment} - by {self.user}"
 
+class Payment(models.Model):
+    cardholder_name = models.CharField(max_length=100)
+    card_number = models.CharField(max_length=16)
+    expiry_month = models.IntegerField()
+    expiry_year = models.IntegerField()
+    cvc = models.CharField(max_length=4)
+    iban_number = models.CharField(max_length=34)
+
+    def __str__(self):
+        return f"{self.cardholder_name}'s Payment"
+
+    def save(self, *args, **kwargs):
+        # Additional validation and data processing can be done here before saving to the database
+        super().save(*args, **kwargs)        
+
 class UserHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
+    bid = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # New bid field
 
-    listing_name = models.CharField(max_length=100)
-    listing_image = models.ImageField(upload_to='listing_images')
-    category = models.CharField(max_length=50)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    bid = models.DecimalField(max_digits=10, decimal_places=2)
 
-    def save(self, *args, **kwargs):
-        listing = self.listing
-        self.listing_name = listing.name
-        self.listing_image = listing.image
-        self.category = listing.category
-        self.price = listing.initial
-        self.bid = listing.bid
-        super().save(*args, **kwargs)
 
 class WatchlistItem(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='watchlist')

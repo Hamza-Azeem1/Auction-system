@@ -11,26 +11,25 @@ Auction Success
   <div class="alert alert-success" role="alert">
     The auction for <strong>{{ listing.name }}</strong> is closed.
   </div>
-  {% if listing.winner == user %}
+  {% if listing.winner == highest_bidder_username %}
   <div class="alert alert-info" role="alert">
-    Congratulations! You won the auction!
+    Congratulations! You won this auction for <strong>${{ listing.highest_bid }}</strong>
+    We will be in touch with you soon!
   </div>
-  <div class="winner-info">
-    <h5>Winner Information</h5>
-    <p>Winner: {{ listing.winner.username }}</p>
-    <p>Winning Bid: ${{ listing.highest_bid }}</p>
-    <a href="{% url 'auctions:checkout' %}" class="btn btn-outline-primary">Proceed to checkout</a>
-  </div>
-  {% else %}
-  <div class="alert alert-warning" role="alert">
-    The auction was won by <strong>{{ listing.winner.username }}</strong> with a bid of <strong>${{ listing.highest_bid }}</strong>.
-  </div>
-  {% endif %}
-  {% else %}
-  <div class="alert alert-danger" role="alert">
-    The auction is still open. You are not allowed to access this page.
-  </div>
-  {% endif %}
+  <br>
+  <a href="{% url 'auctions:index' %}" class="btn btn-outline-primary">Go Back</a>
+</div>
+{% else %}
+<div class="alert alert-warning" role="alert">
+  The auction was won by <strong> {{ listing.winner.username }} </strong> with a bid of <strong>
+    ${{ listing.highest_bid }}</strong>.
+</div>
+{% endif %}
+{% else %}
+<div class="alert alert-danger" role="alert">
+  The auction is still open. You are not allowed to access this page.
+</div>
+{% endif %}
 </div>
 
 {% endblock %}

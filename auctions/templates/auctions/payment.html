@@ -1,0 +1,129 @@
+{% extends "auctions/layout.html" %}
+{% block title %}
+Payment Form
+{% endblock %}
+
+<style>
+    /* Additional CSS styles for the Payment Form */
+    .container {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f8f9fa;
+        /* Light gray background */
+        border-radius: 4px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Style for labels */
+    label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 5px;
+        color: #333;
+        /* Dark text color */
+    }
+
+    /* Style for input fields */
+    input[type="text"],
+    input[type="number"] {
+        width: 100px;
+        /* Fixed width */
+        padding: 10px;
+        border: 1px solid #ccc;
+        /* Light gray border */
+        border-radius: 20px;
+        /* Rounded corners */
+        outline: none;
+        background-color: #fff;
+        /* White background */
+        color: #333;
+        /* Dark text color */
+        transition: border-color 0.2s;
+    }
+
+    .input-group-text {
+        background-color: #000;
+        /* Black background */
+        color: #fff;
+        /* White text color */
+        border-color: #ced4da;
+        padding: 8px;
+        border-top-left-radius: 4px;
+        border-bottom-left-radius: 4px;
+        width: 131px;
+        text-align: center;
+    }
+
+    /* Change border color on focus */
+    input[type="text"]:focus,
+    input[type="number"]:focus {
+        border-color: #80bdff;
+        /* Light blue border on focus */
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    /* Style for the 'Proceed' button */
+    .btn {
+        display: block;
+        /* Fixed width */
+        padding: 10px;
+        background-color: #007bff;
+        /* Blue background */
+        color: #fff;
+        /* White text color */
+        border: none;
+        border-radius: 20px;
+        /* Rounded corners */
+        cursor: pointer;
+        font-weight: bold;
+        text-transform: uppercase;
+        transition: background-color 0.2s;
+    }
+
+    .btn:hover {
+        background-color: #0056b3;
+        /* Darker blue background on hover */
+    }
+</style>
+
+{% block body %}
+
+<div class="container">
+    <h1>Payment Form</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="input-group">
+            <div class="input-group-text">Cardholder Name:</div>
+            {{ payment_form.cardholder_name }}
+        </div>
+        <br>
+        <div class="input-group">
+            <div class="input-group-text">Card Number:</div>
+            {{ payment_form.card_number }}
+        </div>
+        <br>
+        <div class="input-group">
+            <div class="input-group-text">Expiry Month:</div>
+            {{ payment_form.expiry_month }}
+        </div>
+        <br>
+        <div class="input-group">
+            <div class="input-group-text">Expiry Year:</div>
+            {{ payment_form.expiry_year }}
+        </div>
+        <br>
+        <div class="input-group">
+            <div class="input-group-text">CVC:</div>
+            {{ payment_form.cvc }}
+        </div>
+        <br>
+        <div class="input-group">
+            <div class="input-group-text">IBAN Number:</div>
+            {{ payment_form.iban_number }}
+        </div>
+        <input type="submit" value="Proceed" class="btn btn-outline-success">
+    </form>
+</div>
+
+{% endblock %}

@@ -6,8 +6,8 @@ from django.urls import reverse
 from django.contrib import messages
 from decimal import *
 from django.db.models import Max
-from .models import User, Listing, Bid, Comment, UserHistory, WatchlistItem
-from .forms import ListingForm
+from .models import User, Listing, Bid, Comment, UserHistory, WatchlistItem, Payment, Status
+from .forms import ListingForm, PaymentForm
 from .decorators import Unauthenticated_user, Authenticated_user
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -81,6 +81,10 @@ def view_winner(request, listing_id):
     return render(request, 'auctions/winner.html', context)    
 
 def index(request):
+    payment_completed = Payment.objects.filter(cardholder_name=request.user.username).exists()
+    if not payment_completed:
+        return redirect('auctions:payment')
+
     listings = []
     items = Listing.objects.all()
     for item in items:
@@ -101,7 +105,18 @@ def index(request):
 
 @Unauthenticated_user
 def login_view(request):
-        return render(request, "auctions/login.html")
+    if request.method == 'POST':
+        # Handle login form submission here
+        # ...
+        # After successful login, set a session variable to indicate the user's progress
+        request.session['payment_completed'] = False
+        return redirect('auctions:payment')
+    
+    # If the user is already authenticated, redirect to the index page
+    if request.user.is_authenticated:
+        return redirect('auctions:index')
+    
+    return render(request, "auctions/login.html")
 
 
 @Authenticated_user
@@ -157,6 +172,52 @@ def listing(request, listing_id):
     }
     return render(request, "auctions/listing.html", context)
 
+def payment(request):
+    if not request.user.is_authenticated:
+        # If the user is not logged in, redirect to the login page
+        return redirect('auctions:login')
+
+    # Check if the user has completed the payment
+    payment_completed = Payment.objects.filter(cardholder_name=request.user.username).exists()
+
+    if request.method == "POST":
+        payment_form = PaymentForm(request.POST)
+        if payment_form.is_valid():
+            cardholder_name = payment_form.cleaned_data['cardholder_name']
+            card_number = payment_form.cleaned_data['card_number']
+            expiry_month = payment_form.cleaned_data['expiry_month']
+            expiry_year = payment_form.cleaned_data['expiry_year']
+            cvc = payment_form.cleaned_data['cvc']
+            iban_number = payment_form.cleaned_data['iban_number']
+
+            # Create a Payment instance and save it to the database
+            payment = Payment(
+                cardholder_name=cardholder_name,
+                card_number=card_number,
+                expiry_month=expiry_month,
+                expiry_year=expiry_year,
+                cvc=cvc,
+                iban_number=iban_number
+            )
+            payment.save()
+
+            # Set the session variable to indicate the user's progress
+            request.session['payment_completed'] = True
+
+            return redirect('auctions:index')
+    else:
+        # If the user has already completed the payment, redirect to the index page
+        if payment_completed:
+            return redirect('auctions:index')
+        # If the user has not completed the payment, show the payment form
+        else:
+            payment_form = PaymentForm()
+            context = {
+                'payment_form': payment_form,
+            }
+            return render(request, "auctions/payment.html", context)
+
+
 
 def update_listing(request, listing_id):
     listing = get_object_or_404(Listing, pk=listing_id)
@@ -180,38 +241,43 @@ def update_listing(request, listing_id):
 @Authenticated_user
 def bid(request):
     if request.method == "POST":
-        new_bid = request.POST.get("bid")  # Use get() instead of indexing to handle missing bid value gracefully
+        new_bid = request.POST.get("bid")
         item_id = request.POST.get("list_id")
 
-        if new_bid is not None and new_bid.strip():  # Check if bid value is not empty or None
-            try:
-                new_bid_decimal = Decimal(new_bid)  # Convert bid value to Decimal
+        # Get the listing
+        item = Listing.objects.get(pk=item_id)
 
-                item = Listing.objects.get(pk=item_id)
-                old_bid = Bid.objects.filter(listing=item)
-
-                if old_bid.count() < 1:
-                    bid = Bid(user=request.user, listing=item, highest_bid=new_bid_decimal)
-                    bid.save()
-                    item.bid = new_bid_decimal
-                    item.save()
-                    messages.success(request, 'Bid Placed Successfully!', fail_silently=True)
-                elif new_bid_decimal < old_bid[0].highest_bid:
-                    messages.warning(request, 'The bid you placed was lower than needed.', fail_silently=True)
-                elif new_bid_decimal == old_bid[0].highest_bid:
-                    messages.warning(request, 'The bid you placed was the same as the current bid', fail_silently=True)
-                else:
-                    old_bid = Bid.objects.get(listing=item)
-                    old_bid.highest_bid = new_bid_decimal
-                    old_bid.user = request.user
-                    old_bid.save()
-                    item.bid = new_bid_decimal
-                    item.save()
-                    messages.success(request, 'Bid Placed Successfully!', fail_silently=True)
-            except ValueError:
-                messages.warning(request, 'Invalid bid value. Please enter a valid number.', fail_silently=True)
+        # Check if bidding is allowed for this listing
+        if item.start_time > timezone.now():
+            messages.warning(request, "Bidding will be allowed when the auction starts.", fail_silently=True)
         else:
-            messages.warning(request, 'Bid value is required.', fail_silently=True)
+            # Continue with bid placement logic when bidding is allowed
+            if new_bid is not None and new_bid.strip():
+                try:
+                    new_bid_decimal = Decimal(new_bid)
+
+                    # Get the current bid for the listing
+                    old_bid = Bid.objects.filter(listing=item).order_by('-highest_bid').first()
+
+                    if old_bid is None or new_bid_decimal > old_bid.highest_bid:
+                        # Create or update the UserHistory object with the new bid
+                        user_history, created = UserHistory.objects.get_or_create(user=request.user, listing=item)
+                        user_history.bid = new_bid_decimal
+                        user_history.save()
+
+                        # Update the bid for the listing
+                        item.bid = new_bid_decimal
+                        item.save()
+
+                        messages.success(request, "Bid Placed Successfully!", fail_silently=True)
+                    elif new_bid_decimal == old_bid.highest_bid:
+                        messages.warning(request, "The bid you placed was the same as the current bid", fail_silently=True)
+                    else:
+                        messages.warning(request, "The bid you placed was lower than needed.", fail_silently=True)
+                except ValueError:
+                    messages.warning(request, "Invalid bid value. Please enter a valid number.", fail_silently=True)
+            else:
+                messages.warning(request, "Bid value is required.", fail_silently=True)
 
     return redirect("auctions:listing", item_id)
 
@@ -389,20 +455,24 @@ def search_results(request):
 @Authenticated_user
 def user_history(request):
     user = request.user
-    history = UserHistory.objects.filter(user=user).order_by('-timestamp')
+
+    # Get the user's bid history for those listings where the user has placed bids
+    history = UserHistory.objects.filter(user=user, bid__gt=0).order_by('-timestamp')
+
     history_with_details = []
+
     for item in history:
         listing = item.listing
-        highest_bid = UserHistory.objects.filter(listing=listing).aggregate(Max('bid'))['bid__max']
-        is_highest_bidder = item.bid == highest_bid
+
         listing_image_url = listing.image.url if listing.image else '/static/auctions/uploads/None/NIA.png'
         history_with_details.append({
             'listing_name': listing.name,
             'listing_image_url': listing_image_url,
             'category': listing.category,
             'price': listing.initial,
-            'bid': listing.bid,
+            'bid': item.bid,
             'timestamp': item.timestamp,
-            'is_highest_bidder': is_highest_bidder
+            'listing_id': listing.pk,
         })
+
     return render(request, 'auctions/user_history.html', {'history': history_with_details})

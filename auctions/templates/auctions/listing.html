@@ -64,10 +64,6 @@
       <input class="input" name="list_id" type="hidden" value="{{ listing.id }}" />
       <button class="btn btn-outline-primary" type="submit">Place Bid</button>
     </form>
-{# Part below is not necessary - this block is executed only if listing.user ! user #}
-{#    <div class="alert alert-info">#}
-{#      Owner cannot bid on their own item.#}
-{#    </div>#}
   </div>
   {% endif %}
   <hr>

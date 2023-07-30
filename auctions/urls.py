@@ -6,6 +6,7 @@ app_name = 'auctions'
 urlpatterns = [
     path('', views.index, name='index'),
     path("login", views.login_view, name="login"),
+    path('payment/', views.payment, name='payment'),
     path('logout/', views.logout_view, name='logout'),
     path('listing/<int:listing_id>/', views.listing, name='listing'),
     path('update_listing/<int:listing_id>/', views.update_listing, name='update_listing'),
@@ -21,5 +22,5 @@ urlpatterns = [
     path('close_listing/<int:listing_id>/', views.close_listing, name='close_listing'),
     path('search_results/', views.search_results, name='search_results'),
     path('user_history/', views.user_history, name='user_history'),
-    # path('checkout/', views.checkout, name='checkout'),
+    path('checkout/', views.checkout, name='checkout'),
 ]
