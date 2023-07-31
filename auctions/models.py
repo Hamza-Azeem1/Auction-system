@@ -63,6 +63,15 @@ class Listing(models.Model):
         if self.is_auction_expired() and self.status == Status.PENDING.value:
             self.close_auction()
 
+            # Get the highest bid for the listing
+            highest_bid = self.bid_set.order_by('-highest_bid').first()
+
+            if highest_bid:
+                self.winner = highest_bid.user
+            else:
+                # If there are no bids, set the winner to None
+                self.winner = None
+
         super().save(*args, **kwargs)
 
 class Bid(models.Model):

@@ -17,68 +17,9 @@ from django.core.exceptions import PermissionDenied
 from django.http import Http404
 from decimal import Decimal
 from django.http import JsonResponse
-import stripe
-from django.conf import settings
-
-
-stripe.api_key = settings.STRIPE_SECRET_KEY
 
 # dictionary variable to keep track of individual's watchlist
 watch_list = dict()
-
-def checkout(request):
-    listing_id = request.GET.get('listing_id')
-    if not listing_id:
-        return redirect("auctions:index")
-
-    try:
-        listing = Listing.objects.get(pk=listing_id, status='Closed', highest_bid__isnull=False)
-    except Listing.DoesNotExist:
-        return redirect("auctions:index")
-
-    # Get the amount to charge the user (you may want to handle currency conversion, etc.)
-    amount = int(listing.highest_bid * 100)  # Amount in cents
-
-    if request.method == "POST":
-        # Token is created by Stripe.js
-        token = request.POST.get("stripeToken")
-
-        try:
-            # Create a charge: this will charge the user's card
-            charge = stripe.Charge.create(
-                amount=amount,
-                currency="usd",
-                source=token,
-                description="Auction Payment",
-            )
-
-            # Update the listing to mark it as paid or perform any other necessary actions
-            listing.paid = True
-            listing.save()
-
-            return redirect("auctions:thank_you")
-        except stripe.error.CardError as e:
-            # Display error to the user
-            return render(request, "auctions/checkout.html", {"error": str(e)})
-
-    return render(request, "auctions/checkout.html", {"listing": listing, "amount": amount})
-
-def view_winner(request, listing_id):
-    listing = get_object_or_404(Listing, id=listing_id)
-
-    # Get the highest bid for this listing
-    highest_bid = Bid.objects.filter(listing=listing).order_by('-highest_bid').first()
-
-    winner = None
-    if highest_bid:
-        winner = highest_bid.user
-
-    context = {
-        'listing': listing,
-        'winner': winner,
-    }
-
-    return render(request, 'auctions/winner.html', context)    
 
 def index(request):
     payment_completed = Payment.objects.filter(cardholder_name=request.user.username).exists()
@@ -106,9 +47,6 @@ def index(request):
 @Unauthenticated_user
 def login_view(request):
     if request.method == 'POST':
-        # Handle login form submission here
-        # ...
-        # After successful login, set a session variable to indicate the user's progress
         request.session['payment_completed'] = False
         return redirect('auctions:payment')
     
@@ -249,31 +187,39 @@ def bid(request):
 
         # Check if bidding is allowed for this listing
         if item.start_time > timezone.now():
-            messages.warning(request, "Bidding will be allowed when the auction starts.", fail_silently=True)
+            messages.warning(request, "Bidding is not yet allowed for this listing.", fail_silently=True)
         else:
             # Continue with bid placement logic when bidding is allowed
             if new_bid is not None and new_bid.strip():
                 try:
                     new_bid_decimal = Decimal(new_bid)
 
-                    # Get the current bid for the listing
-                    old_bid = Bid.objects.filter(listing=item).order_by('-highest_bid').first()
+                    old_bid = Bid.objects.filter(listing=item)
 
-                    if old_bid is None or new_bid_decimal > old_bid.highest_bid:
-                        # Create or update the UserHistory object with the new bid
-                        user_history, created = UserHistory.objects.get_or_create(user=request.user, listing=item)
-                        user_history.bid = new_bid_decimal
-                        user_history.save()
-
-                        # Update the bid for the listing
+                    if old_bid.count() < 1:
+                        bid = Bid(user=request.user, listing=item, highest_bid=new_bid_decimal)
+                        bid.save()
                         item.bid = new_bid_decimal
                         item.save()
-
                         messages.success(request, "Bid Placed Successfully!", fail_silently=True)
-                    elif new_bid_decimal == old_bid.highest_bid:
+                    elif new_bid_decimal < old_bid[0].highest_bid:
+                        messages.warning(request, "The bid you placed was lower than needed.", fail_silently=True)
+                    elif new_bid_decimal == old_bid[0].highest_bid:
                         messages.warning(request, "The bid you placed was the same as the current bid", fail_silently=True)
                     else:
-                        messages.warning(request, "The bid you placed was lower than needed.", fail_silently=True)
+                        old_bid = Bid.objects.get(listing=item)
+                        old_bid.highest_bid = new_bid_decimal
+                        old_bid.user = request.user
+                        old_bid.save()
+                        item.bid = new_bid_decimal
+                        item.save()
+                        messages.success(request, "Bid Placed Successfully!", fail_silently=True)
+                    
+                    # Create or update the UserHistory object with the new bid
+                    user_history, created = UserHistory.objects.get_or_create(user=request.user, listing=item)
+                    user_history.bid = new_bid_decimal
+                    user_history.save()
+
                 except ValueError:
                     messages.warning(request, "Invalid bid value. Please enter a valid number.", fail_silently=True)
             else:
